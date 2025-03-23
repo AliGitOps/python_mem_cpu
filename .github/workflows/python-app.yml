@@ -34,9 +34,18 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Build Python binary executable
-      run: |
-        # 假设你的主程序入口文件名为 main.py
-        PyInstaller --onefile main.py
-        # 输出将会在 dist 目录下，你可以根据需要修改输出路径或其他选项  
-
+    # - name: Build Python binary executable
+    #   run: |
+    #     # 假设你的主程序入口文件名为 main.py
+    #     PyInstaller --onefile main.py
+    #     # 输出将会在 dist 目录下，你可以根据需要修改输出路径或其他选项  
+  pyinstaller-build:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Create Executable
+          uses: sayyid5416/pyinstaller@v1
+          with: 
+            python_ver: '3.11'
+            spec: 'main.py'
+            upload_exe_with_name: 'mem_cpu_dingtalk_package'
+            options: --onefile
