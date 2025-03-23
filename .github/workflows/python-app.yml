@@ -82,17 +82,17 @@ jobs:
         
     - name: Prepare for packaging
       run: |
-        mkdir packaged_output
-        cp dist/main dist/packaged_output/mem_cpu_dingtalk_package # 假设输出的可执行文件名为main
+        mkdir -p packaged_output
+        cp dist/main packaged_output/mem_cpu_dingtalk_package # 根据实际输出可执行文件名调整
         cp dingding.config packaged_output/
         
     - name: Create ZIP Archive
       run: |
         cd packaged_output
-        zip -r ../mem_cpu_dingtalk_package.zip ./
+        zip -r mem_cpu_dingtalk_package.zip ./
 
     - name: Upload ZIP Artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3  # 使用v3版本代替v2
       with:
         name: mem_cpu_dingtalk_package
-        path: mem_cpu_dingtalk_package.zip
+        path: packaged_output/mem_cpu_dingtalk_package.zip
