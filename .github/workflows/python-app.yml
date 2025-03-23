@@ -1,55 +1,6 @@
-# # This workflow will install Python dependencies, run tests and lint with a single version of Python
-# # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
 
-# name: Python application
-
-# on:
-#   push:
-#     branches: [ "main" ]
-#   pull_request:
-#     branches: [ "main" ]
-
-# permissions:
-#   contents: read
-
-# jobs:
-#   build:
-
-#     runs-on: ubuntu-latest
-
-#     steps:
-#     - uses: actions/checkout@v4
-#     - name: Set up Python 3.10
-#       uses: actions/setup-python@v3
-#       with:
-#         python-version: "3.11"
-#     - name: Install dependencies
-#       run: |
-#         python -m pip install --upgrade pip
-#         pip install flake8 pytest psutil requests PyInstaller
-#         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-#     - name: Lint with flake8
-#       run: |
-#         # stop the build if there are Python syntax errors or undefined names
-#         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-#         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-#         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-#     # - name: Build Python binary executable
-#     #   run: |
-#     #     # 假设你的主程序入口文件名为 main.py
-#     #     PyInstaller --onefile main.py
-#     #     # 输出将会在 dist 目录下，你可以根据需要修改输出路径或其他选项  
-#   pyinstaller-build:
-#       runs-on: ubuntu-latest
-#       steps:
-#         - name: Create Executable
-#           uses: sayyid5416/pyinstaller@v1
-#           with: 
-#             python_ver: '3.11'
-#             spec: 'main.py'
-#             upload_exe_with_name: 'mem_cpu_dingtalk_package'
-#             options: --onefile
-            
 name: Python application
 
 on:
@@ -58,41 +9,44 @@ on:
   pull_request:
     branches: [ "main" ]
 
+permissions:
+  contents: read
+
 jobs:
   build:
+
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      
-    - name: Set up Python
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.10
       uses: actions/setup-python@v3
       with:
-        python-version: '3.11'
-    
+        python-version: "3.11"
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pyinstaller
-        
-    - name: Create Executable
+        pip install flake8 pytest psutil requests PyInstaller
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Lint with flake8
       run: |
-        pyinstaller --onefile main.py # 假设主脚本名为main.py
-        
-    - name: Prepare for packaging
-      run: |
-        mkdir -p packaged_output
-        cp dist/main packaged_output/mem_cpu_dingtalk_package # 根据实际输出可执行文件名调整
-        cp dingding.config packaged_output/
-        
-    - name: Create ZIP Archive
-      run: |
-        cd packaged_output
-        zip -r mem_cpu_dingtalk_package.zip ./
-
-    - name: Upload ZIP Artifact
-      uses: actions/upload-artifact@v3  # 使用v3版本代替v2
-      with:
-        name: mem_cpu_dingtalk_package
-        path: packaged_output/mem_cpu_dingtalk_package.zip
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    # - name: Build Python binary executable
+    #   run: |
+    #     # 假设你的主程序入口文件名为 main.py
+    #     PyInstaller --onefile main.py
+    #     # 输出将会在 dist 目录下，你可以根据需要修改输出路径或其他选项  
+  pyinstaller-build:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Create Executable
+          uses: sayyid5416/pyinstaller@v1
+          with: 
+            python_ver: '3.11'
+            spec: 'main.py'
+            upload_exe_with_name: 'mem_cpu_dingtalk_package'
+            options: --onefile
+            
