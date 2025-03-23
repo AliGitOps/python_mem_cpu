@@ -49,3 +49,4 @@ jobs:
             spec: 'main.py'
             upload_exe_with_name: 'mem_cpu_dingtalk_package'
             # options: --onefile
+            options: '--onefile --add-data dingding.config:.'
