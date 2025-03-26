@@ -55,12 +55,13 @@ jobs:
         
     - name: Create Executable
       id: create_executable
-      run: pyinstaller --onefile main.py
-      
+      run: |
+        pyinstaller --onefile main.py
+        mv ./dist/main ./dist/release-assets/
+        
     - name: Move required files to a distribution folder
       run: |
         mkdir -p ./dist/release-assets
-        mv ./dist/main ./dist/release-assets/
         cp ./dingtalk.config ./dist/release-assets/
         cp ./requirements.txt ./dist/release-assets/
         
