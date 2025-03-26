@@ -1,3 +1,31 @@
+# name: Create release
+
+# on: 
+#   push: 
+#     tags: 
+#       - 'v*'
+
+# permissions:
+#   contents: write
+
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+#     steps:
+#     - name: Create Executable
+#       id: create_executable
+#       uses: sayyid5416/pyinstaller@v1
+#       with:
+#         python_ver: '3.11'
+#         spec: 'main.py'
+#         upload_exe_with_name: 'python_mem_cpu_alarm'
+#         options: --onefile
+#     - name: Release
+#       uses: softprops/action-gh-release@v2
+#       if: startsWith(github.ref, 'refs/tags/')
+#       with:
+#           files: ./dist/**
+
 name: Create release
 
 on: 
@@ -12,16 +40,38 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller requests
+        
     - name: Create Executable
       id: create_executable
-      uses: sayyid5416/pyinstaller@v1
-      with:
-        python_ver: '3.11'
-        spec: 'main.py'
-        upload_exe_with_name: 'python_mem_cpu_alarm'
-        options: --onefile
+      run: pyinstaller --onefile main.py
+      
+    - name: Move required files to a distribution folder
+      run: |
+        mkdir -p ./dist/release-assets
+        mv ./dist/main ./dist/release-assets/
+        cp ./dingtalk.config ./dist/release-assets/
+        cp ./requirements.txt ./dist/release-assets/
+        
     - name: Release
       uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
       with:
-          files: ./dist/**
+        tag_name: ${{ github.ref_name }}
+        name: Release ${{ github.ref_name }}
+        body: Automatically created release for tag ${{ github.ref_name }}
+        files: |
+          ./dist/release-assets/main
+          ./dist/release-assets/dingtalk.config
+          ./dist/release-assets/requirements.txt
