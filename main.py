@@ -8,6 +8,7 @@ import requests
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.header import Header
+from loguru import logger
 
 
 # 钉钉告警通知
@@ -48,31 +49,44 @@ def send_dingtalk_message(message):
         if result.get('errcode') == 0:
             print("消息发送成功")
         else:
-            print(f"消息发送失败，原因: {result}")
+            logger.error(f"消息发送失败，原因: {result}")
     else:
-        print(f"HTTP请求失败，状态码: {response.status_code}")
+        logger.error(f"HTTP请求失败，状态码: {response.status_code}")
 
 
 
 def main_qq(server, Maintext):
-    con = smtplib.SMTP_SSL('smtp.qq.com', 465)
+    """
+        使用 email.txt 配置文件存放 qq 账号 和 关键词
+        配置文件用法:
+        <qq账号>
+        <你的机器人关键词>
+        """
+    with open("email.config", "r") as qq:
+        QQ_EMAIN = qq.readline().strip()
+        QQ_KEYWORD = qq.readline().strip()
+    try:
+        con = smtplib.SMTP_SSL('smtp.qq.com', 465)
 
-    con.login('2516786946', 'tkdqhaxmryqqecbi')
+        con.login(f'{QQ_EMAIN}', f'{QQ_KEYWORD}')
 
-    msg = MIMEMultipart()
+        msg = MIMEMultipart()
 
-    subject = Header(f'Python {server}', 'utf-8').encode()
-    msg['Subject'] = subject
+        subject = Header(f'Python {server}', 'utf-8').encode()
+        msg['Subject'] = subject
 
-    msg['From'] = '2516786946@qq.com <2516786946@qq.com>'
+        msg['From'] = f'{QQ_EMAIN}@qq.com <{QQ_EMAIN}@qq.com>'
 
-    msg['To'] = '2516786946@qq.com'
+        msg['To'] = f'{QQ_EMAIN}@qq.com'
 
-    text = MIMEText(Maintext, 'plain', 'utf-8')
-    msg.attach(text)
+        text = MIMEText(Maintext, 'plain', 'utf-8')
+        msg.attach(text)
 
-    con.sendmail('2516786946@qq.com', '2516786946@qq.com', msg.as_string())
-    con.quit()
+        con.sendmail('2516786946@qq.com', '2516786946@qq.com', msg.as_string())
+
+        con.quit()
+    except smtplib.SMTPServerDisconnected:
+        logger.error("QQ账户或者密码不正确")
 
 
 # cpu
@@ -100,6 +114,7 @@ def get_cpu():
         # 钉钉告警
         message = f"警告：服务器 {ip_address} CPU: 资源使用率不正常, 请立即排查"
         send_dingtalk_message(message)
+
 
 # 内存
 # 判断
@@ -148,10 +163,19 @@ if __name__ == "__main__":
     try:
         location_var = sys.argv[1]
         if location_var == "-h":
+            """
+                钉钉使用方法
+            """
             print("用法如下:")
-            print("    在 dingtalk.config 配置文件中添加 钉钉的 第一行添加钉钉的 token, 第二行添加关键词比如")
+            print("    钉钉: 在 dingtalk.config 配置文件中添加 钉钉的 第一行添加钉钉的 token, 第二行添加关键词比如")
             print("        https://oapi.dingtalk.com/robot/send?access_token=xxx")
             print("        Python")
+            """
+                QQ使用方法
+            """
+            print("    QQ: 在 email.config 配置文件中添加 QQ的 第一行添加QQ的 账号, 第二行添加授权码比如")
+            print("        25167869xx")
+            print("        tkdqhaxmryqqxxx")
             exit(0)
     except Exception as e:
         get_mem()
