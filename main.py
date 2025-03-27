@@ -174,8 +174,8 @@ if __name__ == "__main__":
                 QQ使用方法
             """
             print("    QQ: 在 email.config 配置文件中添加 QQ的 第一行添加QQ的 账号, 第二行添加授权码比如")
-            print("        xxxxxxxxxx")
-            print("        xxxxxxxxxx")
+            print("        25167869xx")
+            print("        tkdqhaxmryqqxxx")
             exit(0)
     except Exception as e:
         get_mem()
