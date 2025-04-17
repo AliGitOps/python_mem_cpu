@@ -9,6 +9,24 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.header import Header
 from loguru import logger
+import configparser
+
+
+class Conf:
+    def __init__(self):
+        self.conf = configparser.ConfigParser()
+        self.root_path = os.path.dirname(os.path.abspath(__file__))
+        self.f = os.path.join(self.root_path + "/config.conf")
+        self.conf.read(self.f)
+
+    def read_email(self, m, n):
+        name = self.conf.get(m, n)  # 获取指定section的option值
+        logger.info(f"获取指定section: {m}下的option: {n}的值为{name}")
+        return name
+
+
+
+
 
 
 # 钉钉告警通知
@@ -61,11 +79,17 @@ def main_qq(server, Maintext):
         配置文件用法:
         <qq账号>
         <你的机器人关键词>
-        """
-    with open("email.config", "r") as qq:
-        QQ_EMAIN = qq.readline().strip()
-        QQ_KEYWORD = qq.readline().strip()
+    """
+    # with open("email.config", "r") as qq:
+    #     QQ_EMAIN = qq.readline().strip()
+    #     QQ_KEYWORD = qq.readline().strip()
     try:
+        # 实例化类
+        conf = Conf()
+        # qq 账号
+        QQ_EMAIN = conf.read_email("email", "key")
+        QQ_KEYWORD = conf.read_email("email", "value")
+
         con = smtplib.SMTP_SSL('smtp.qq.com', 465)
 
         con.login(f'{QQ_EMAIN}', f'{QQ_KEYWORD}')
@@ -82,7 +106,7 @@ def main_qq(server, Maintext):
         text = MIMEText(Maintext, 'plain', 'utf-8')
         msg.attach(text)
 
-        con.sendmail('2516786946@qq.com', '2516786946@qq.com', msg.as_string())
+        con.sendmail(f'{QQ_EMAIN}', f'{QQ_KEYWORD}', msg.as_string())
 
         con.quit()
     except smtplib.SMTPServerDisconnected:
@@ -159,24 +183,28 @@ def file_time(create_dir, file_name, cm):
 
 
 if __name__ == "__main__":
+    # get_mem()
+    # get_cpu()
+    conf = Conf()
+    eqq = conf.read_email("email", "key")
+    print(eqq)
 
-    try:
-        location_var = sys.argv[1]
-        if location_var == "-h":
-            """
-                钉钉使用方法
-            """
-            print("用法如下:")
-            print("    钉钉: 在 dingtalk.config 配置文件中添加 钉钉的 第一行添加钉钉的 token, 第二行添加关键词比如")
-            print("        https://oapi.dingtalk.com/robot/send?access_token=xxx")
-            print("        Python")
-            """
-                QQ使用方法
-            """
-            print("    QQ: 在 email.config 配置文件中添加 QQ的 第一行添加QQ的 账号, 第二行添加授权码比如")
-            print("        25167869xx")
-            print("        tkdqhaxmryqqxxx")
-            exit(0)
-    except Exception as e:
-        get_mem()
-        get_cpu()
+    # try:
+    #     location_var = sys.argv[1]
+    #     if location_var == "-h":
+    #         """
+    #             钉钉使用方法
+    #         """
+    #         print("用法如下:")
+    #         print("    钉钉: 在 dingtalk.config 配置文件中添加 钉钉的 第一行添加钉钉的 token, 第二行添加关键词比如")
+    #         print("        https://oapi.dingtalk.com/robot/send?access_token=xxx")
+    #         print("        Python")
+    #         """
+    #             QQ使用方法
+    #         """
+    #         print("    QQ: 在 email.config 配置文件中添加 QQ的 第一行添加QQ的 账号, 第二行添加授权码比如")
+    #         print("        25167869xx")
+    #         print("        tkdqhaxmryqqxxx")
+    #         exit(0)
+    # except Exception as e:
+
