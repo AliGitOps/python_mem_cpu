@@ -24,30 +24,25 @@ class Conf:
         logger.info(f"获取指定section: {m}下的option: {n}的值为{name}")
         return name
 
-
-
-
+    def read_dingtalk(self, m, n):
+        name = self.conf.get(m, n)
+        logger.info(f"获取指定section: {m}下的option: {n}的值为{name}")
+        return name
 
 
 # 钉钉告警通知
 def send_dingtalk_message(message):
-
-
-    """
-    使用 dingtalk.config 配置文件存放 钉钉的 token 和 关键词
-    配置文件用法:
-    https://oapi.dingtalk.com/robot/send?access_token=<你的token>
-    <你的机器人关键词>
-    """
-    with open("dingtalk.config", "r") as dingtalk:
-        DINGTALK_WEBHOOK_URL = dingtalk.readline().strip()
-        KEYWORD = dingtalk.readline().strip()
-
+    # 实例化类
+    dingtalk_conf = Conf()
+    # 钉钉 webhook
+    dingtalk_key = dingtalk_conf.read_dingtalk("dingtalk", "key")
+    # 钉钉 关键词
+    dingtalk_value = dingtalk_conf.read_dingtalk("dingtalk", "value")
 
 
     """发送钉钉消息"""
     # 确保消息中包含关键字
-    message_with_keyword = f"{message}\n{KEYWORD}"
+    message_with_keyword = f"{message}\n{dingtalk_value}"
 
     headers = {
         "Content-Type": "application/json"
@@ -59,7 +54,7 @@ def send_dingtalk_message(message):
         }
     }
 
-    response = requests.post(DINGTALK_WEBHOOK_URL, json=data, headers=headers)
+    response = requests.post(dingtalk_key, json=data, headers=headers)
 
     # 检查请求是否成功
     if response.status_code == 200:
@@ -72,7 +67,6 @@ def send_dingtalk_message(message):
         logger.error(f"HTTP请求失败，状态码: {response.status_code}")
 
 
-
 def main_qq(server, Maintext):
     """
         使用 email.txt 配置文件存放 qq 账号 和 关键词
@@ -82,11 +76,11 @@ def main_qq(server, Maintext):
     """
     try:
         # 实例化类
-        conf = Conf()
+        qq_conf = Conf()
         # qq 账号
-        QQ_EMAIN = conf.read_email("email", "key")
+        QQ_EMAIN = qq_conf.read_email("email", "key")
         # qq密码
-        QQ_KEYWORD = conf.read_email("email", "value")
+        QQ_KEYWORD = qq_conf.read_email("email", "value")
 
         con = smtplib.SMTP_SSL('smtp.qq.com', 465)
 
