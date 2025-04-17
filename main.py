@@ -183,8 +183,8 @@ def file_time(create_dir, file_name, cm):
 
 
 if __name__ == "__main__":
-    # get_mem()
-    # get_cpu()
+    get_mem()
+    get_cpu()
     conf = Conf()
     eqq = conf.read_email("email", "key")
     print(eqq)
