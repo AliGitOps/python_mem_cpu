@@ -16,8 +16,10 @@ class Conf:
     def __init__(self):
         self.conf = configparser.ConfigParser()
         self.root_path = os.path.dirname(os.path.abspath(__file__))
-        self.f = os.path.join(self.root_path + "/config.conf")
+        # self.f = os.path.join(self.root_path + "/config.conf")
+        self.f = os.path.join(self.root_path, "dist", "config.conf")
         self.conf.read(self.f)
+
 
     def read_email(self, m, n):
         name = self.conf.get(m, n)  # 获取指定section的option值
