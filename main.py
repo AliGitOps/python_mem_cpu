@@ -16,8 +16,7 @@ class Conf:
     def __init__(self):
         self.conf = configparser.ConfigParser()
         self.root_path = os.path.dirname(os.path.abspath(__file__))
-        self.f = os.path.join(self.root_path + "/config.conf")
-        # self.f = os.path.join(self.root_path, "dist", "config.conf")
+        self.f = os.path.join(self.root_path + "/dist/config.conf")
         self.conf.read(self.f)
 
 
@@ -124,10 +123,11 @@ def get_cpu():
 
         # 获取 CPU 使用情况
         main_qq(alarm_text, cpu_text)
-
+    try:
         # 写入告警: 时间点、阈值
         file_time("/opt/cpu_dir", "cpu_file", cpu_usage)
-
+    except FileNotFoundError:
+        logger.error("请在 Linux 服务器上运行代码")
 
         # 钉钉告警
         message = f"警告：服务器 {ip_address} CPU: 资源使用率不正常, 请立即排查"
@@ -152,10 +152,11 @@ def get_mem():
         mem_text = f"内存使用率告警: 请及时远程服务器进行处理: {ip_address}"
 
         main_qq(alarm_text, mem_text)
-
+    try:
         # 写入告警: 时间点、阈值
         file_time("/opt/mem_dir", "mem_file", memory_usage)
-
+    except FileNotFoundError:
+        logger.error("请在 Linux 服务器上运行代码")
         # 钉钉告警
         message = f"警告：服务器 {ip_address} MEM: 资源使用率不正常, 请立即排查"
         send_dingtalk_message(message)
