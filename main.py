@@ -185,8 +185,29 @@ def file_time(create_dir, file_name, cm):
         f.close()
 
 
+# 处理传参函数
+def argv_main():
+    # 检查是否有提供任何参数（除了脚本名称）
+    if len(sys.argv) == 1:
+        pass
+    else:
+        for arg in sys.argv[1:]:
+            if arg == "-v":
+                print("version: 5")
+                exit(0)
+            elif arg == "-h":
+                print("用法如下:")
+                print("    在 config.conf 配置文件中添加对应的 qq邮箱地址和钉钉地址(授权和、关键词)")
+                exit(0)
+
+            else:
+                print(f"未知选项: {arg}")
+                exit(0)
+
 
 if __name__ == "__main__":
+
+    argv_main()
     get_mem()
     get_cpu()
 
