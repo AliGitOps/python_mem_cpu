@@ -20,13 +20,11 @@ sed -i '/cpu_usage/ s/> [0-9]\{1,2\}/> <你想更改的阈值 (CPU)>/' main.py
 sed -i '/memory_usage/ s/> [0-9]\{1,2\}/> <你想更改的阈值 (内存)>/' main.py 
 
 # 构建为二进制可执行文件
-pyinstaller -F main.py
+pyinstaller -F --add-data "dist/config.conf:." main.py
 
 ```
 
 ```bash
-# 移动配置文件
-mv *.config dist/
 cd dist/
 
 # 使用脚本之前在配置文件中添加自己对应的账号信息
