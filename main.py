@@ -9,27 +9,44 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.header import Header
 from loguru import logger
+import configparser
+
+
+class Conf:
+    def __init__(self):
+        self.conf = configparser.ConfigParser()
+        self.root_path = os.path.dirname(os.path.abspath(__file__))
+        self.f = os.path.join(self.root_path + "/config.conf")
+        self.conf.read(self.f)
+
+
+
+    def read_email(self, m, n):
+        name = self.conf.get(m, n)  # 获取指定section的option值
+        logger.info(f"获取指定section: {m}下的option: {n}的值为{name}")
+        return name
+
+    def read_dingtalk(self, m, n):
+        name = self.conf.get(m, n)
+        logger.info(f"获取指定section: {m}下的option: {n}的值为{name}")
+        return name
 
 
 # 钉钉告警通知
 def send_dingtalk_message(message):
-
-
-    """
-    使用 dingtalk.config 配置文件存放 钉钉的 token 和 关键词
-    配置文件用法:
-    https://oapi.dingtalk.com/robot/send?access_token=<你的token>
-    <你的机器人关键词>
-    """
-    with open("dingtalk.config", "r") as dingtalk:
-        DINGTALK_WEBHOOK_URL = dingtalk.readline().strip()
-        KEYWORD = dingtalk.readline().strip()
-
+    # 实例化类
+    dingtalk_conf = Conf()
+    # 钉钉 webhook
+    dingtalk_key = dingtalk_conf.read_dingtalk("dingtalk", "key")
+    print(dingtalk_key)
+    # 钉钉 关键词
+    dingtalk_value = dingtalk_conf.read_dingtalk("dingtalk", "value")
+    print(dingtalk_value)
 
 
     """发送钉钉消息"""
     # 确保消息中包含关键字
-    message_with_keyword = f"{message}\n{KEYWORD}"
+    message_with_keyword = f"{message}\n{dingtalk_value}"
 
     headers = {
         "Content-Type": "application/json"
@@ -41,7 +58,7 @@ def send_dingtalk_message(message):
         }
     }
 
-    response = requests.post(DINGTALK_WEBHOOK_URL, json=data, headers=headers)
+    response = requests.post(dingtalk_key, json=data, headers=headers)
 
     # 检查请求是否成功
     if response.status_code == 200:
@@ -54,18 +71,21 @@ def send_dingtalk_message(message):
         logger.error(f"HTTP请求失败，状态码: {response.status_code}")
 
 
-
 def main_qq(server, Maintext):
     """
         使用 email.txt 配置文件存放 qq 账号 和 关键词
         配置文件用法:
         <qq账号>
         <你的机器人关键词>
-        """
-    with open("email.config", "r") as qq:
-        QQ_EMAIN = qq.readline().strip()
-        QQ_KEYWORD = qq.readline().strip()
+    """
     try:
+        # 实例化类
+        qq_conf = Conf()
+        # qq 账号
+        QQ_EMAIN = qq_conf.read_email("email", "key")
+        # qq密码
+        QQ_KEYWORD = qq_conf.read_email("email", "value")
+
         con = smtplib.SMTP_SSL('smtp.qq.com', 465)
 
         con.login(f'{QQ_EMAIN}', f'{QQ_KEYWORD}')
@@ -75,14 +95,14 @@ def main_qq(server, Maintext):
         subject = Header(f'Python {server}', 'utf-8').encode()
         msg['Subject'] = subject
 
-        msg['From'] = f'{QQ_EMAIN}@qq.com <{QQ_EMAIN}@qq.com>'
+        msg['From'] = f'{QQ_EMAIN} <{QQ_EMAIN}>'
 
-        msg['To'] = f'{QQ_EMAIN}@qq.com'
+        msg['To'] = f'{QQ_EMAIN}'
 
         text = MIMEText(Maintext, 'plain', 'utf-8')
         msg.attach(text)
 
-        con.sendmail('2516786946@qq.com', '2516786946@qq.com', msg.as_string())
+        con.sendmail(f'{QQ_EMAIN}', f'{QQ_EMAIN}', msg.as_string())
 
         con.quit()
     except smtplib.SMTPServerDisconnected:
@@ -100,20 +120,24 @@ def get_cpu():
 
     cpu_usage = psutil.cpu_percent(interval=1)
 
-    if cpu_usage > 75:
+    if cpu_usage > 1:
+        # 获取 CPU 使用情况
         alarm_text = "CPU使用率使用率告警"
         cpu_text = f"CPU使用率告警: 请及时远程服务器进行处理: {ip_address}"
 
-        # 获取 CPU 使用情况
+        # qq报警
         main_qq(alarm_text, cpu_text)
-
-        # 写入告警: 时间点、阈值
-        file_time("/opt/cpu_dir", "cpu_file", cpu_usage)
-
 
         # 钉钉告警
         message = f"警告：服务器 {ip_address} CPU: 资源使用率不正常, 请立即排查"
         send_dingtalk_message(message)
+    try:
+        # 写入告警: 时间点、阈值
+        file_time("/opt/cpu_dir", "cpu_file", cpu_usage)
+    except FileNotFoundError:
+        logger.error("请在 Linux 服务器上运行代码")
+
+
 
 
 # 内存
@@ -129,18 +153,22 @@ def get_mem():
     memory_info = psutil.virtual_memory()
     memory_usage = memory_info.percent
 
-    if memory_usage > 75:
+    if memory_usage > 1:
         alarm_text = "内存使用率使用率告警"
         mem_text = f"内存使用率告警: 请及时远程服务器进行处理: {ip_address}"
 
+        # qq报警
         main_qq(alarm_text, mem_text)
-
-        # 写入告警: 时间点、阈值
-        file_time("/opt/mem_dir", "mem_file", memory_usage)
 
         # 钉钉告警
         message = f"警告：服务器 {ip_address} MEM: 资源使用率不正常, 请立即排查"
         send_dingtalk_message(message)
+    try:
+        # 写入告警: 时间点、阈值
+        file_time("/opt/mem_dir", "mem_file", memory_usage)
+    except FileNotFoundError:
+        logger.error("请在 Linux 服务器上运行代码")
+
 
 
 
@@ -157,26 +185,33 @@ def file_time(create_dir, file_name, cm):
         f.close()
 
 
+# 处理传参函数
+def argv_main():
+    # 检查是否有提供任何参数（除了脚本名称）
+    if len(sys.argv) == 1:
+        pass
+    else:
+        for arg in sys.argv[1:]:
+            if arg == "-v":
+                print("version: 5")
+                exit(0)
+            elif arg == "-h":
+                print("用法如下:")
+                print("    在 config.conf 配置文件中添加对应的 qq邮箱地址和钉钉地址(授权和、关键词)")
+                exit(0)
+
+            else:
+                print(f"未知选项: {arg}")
+                exit(0)
+
 
 if __name__ == "__main__":
 
-    try:
-        location_var = sys.argv[1]
-        if location_var == "-h":
-            """
-                钉钉使用方法
-            """
-            print("用法如下:")
-            print("    钉钉: 在 dingtalk.config 配置文件中添加 钉钉的 第一行添加钉钉的 token, 第二行添加关键词比如")
-            print("        https://oapi.dingtalk.com/robot/send?access_token=xxx")
-            print("        Python")
-            """
-                QQ使用方法
-            """
-            print("    QQ: 在 email.config 配置文件中添加 QQ的 第一行添加QQ的 账号, 第二行添加授权码比如")
-            print("        25167869xx")
-            print("        tkdqhaxmryqqxxx")
-            exit(0)
-    except Exception as e:
-        get_mem()
-        get_cpu()
+    argv_main()
+    get_mem()
+    get_cpu()
+
+
+
+
+
