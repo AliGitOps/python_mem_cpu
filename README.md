@@ -22,10 +22,10 @@ sed -i '/memory_usage/ s/> [0-9]\{1,2\}/> <你想更改的阈值 (内存)>/' mai
 ```
 
 ```bash
-cd dist/
 
+python3 main.py
 # 使用脚本之前在配置文件中添加自己对应的账号信息
-# 直接 ./main 执行即可
 # 没有问题之后写入crontab周期执行即可
+
 ```
 

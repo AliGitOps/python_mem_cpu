@@ -16,9 +16,9 @@ class Conf:
     def __init__(self):
         self.conf = configparser.ConfigParser()
         self.root_path = os.path.dirname(os.path.abspath(__file__))
-        self.f = os.path.join(self.root_path + "/dist/config.conf")
+        self.f = os.path.join(self.root_path + "/config.conf")
         self.conf.read(self.f)
-        print(self.f)
+
 
 
     def read_email(self, m, n):
@@ -38,8 +38,10 @@ def send_dingtalk_message(message):
     dingtalk_conf = Conf()
     # 钉钉 webhook
     dingtalk_key = dingtalk_conf.read_dingtalk("dingtalk", "key")
+    print(dingtalk_key)
     # 钉钉 关键词
     dingtalk_value = dingtalk_conf.read_dingtalk("dingtalk", "value")
+    print(dingtalk_value)
 
 
     """发送钉钉消息"""
@@ -119,20 +121,23 @@ def get_cpu():
     cpu_usage = psutil.cpu_percent(interval=1)
 
     if cpu_usage > 1:
+        # 获取 CPU 使用情况
         alarm_text = "CPU使用率使用率告警"
         cpu_text = f"CPU使用率告警: 请及时远程服务器进行处理: {ip_address}"
 
-        # 获取 CPU 使用情况
+        # qq报警
         main_qq(alarm_text, cpu_text)
+
+        # 钉钉告警
+        message = f"警告：服务器 {ip_address} CPU: 资源使用率不正常, 请立即排查"
+        send_dingtalk_message(message)
     try:
         # 写入告警: 时间点、阈值
         file_time("/opt/cpu_dir", "cpu_file", cpu_usage)
     except FileNotFoundError:
         logger.error("请在 Linux 服务器上运行代码")
 
-        # 钉钉告警
-        message = f"警告：服务器 {ip_address} CPU: 资源使用率不正常, 请立即排查"
-        send_dingtalk_message(message)
+
 
 
 # 内存
@@ -152,15 +157,18 @@ def get_mem():
         alarm_text = "内存使用率使用率告警"
         mem_text = f"内存使用率告警: 请及时远程服务器进行处理: {ip_address}"
 
+        # qq报警
         main_qq(alarm_text, mem_text)
+
+        # 钉钉告警
+        message = f"警告：服务器 {ip_address} MEM: 资源使用率不正常, 请立即排查"
+        send_dingtalk_message(message)
     try:
         # 写入告警: 时间点、阈值
         file_time("/opt/mem_dir", "mem_file", memory_usage)
     except FileNotFoundError:
         logger.error("请在 Linux 服务器上运行代码")
-        # 钉钉告警
-        message = f"警告：服务器 {ip_address} MEM: 资源使用率不正常, 请立即排查"
-        send_dingtalk_message(message)
+
 
 
 
